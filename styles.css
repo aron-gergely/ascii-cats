@@ -1,0 +1,74 @@
+body {
+  background: white;
+  color: black;
+  font-family: monospace;
+  display: flex;
+  flex-direction: column;      /* stack vertically */
+  justify-content: center;     /* center vertically */
+  align-items: center;         /* center horizontally */
+  height: 100vh;
+  gap: 40px;
+  margin: 0;
+}
+
+#cat-food-wrapper {
+  display: flex;
+  gap: 40px;
+  align-items: flex-end;       /* align bottoms of cat and plate */
+}
+
+#cat-container,
+#food-container {
+  white-space: pre;
+  font-size: 14px;
+  user-select: none;
+  cursor: pointer;             /* hand cursor on hover */
+  display: inline-block;
+  font-family: monospace;
+}
+
+#cat-container:hover,
+#food-container:hover {
+  color: magenta;
+}
+
+/* Disable text selection everywhere */
+body, #cat-container, #food-container {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+/* Button styles */
+#change-cat-btn {
+  margin-top: 200px;
+  font-family: monospace;
+  font-size: 14px;
+  padding: 10px 20px;
+  cursor: pointer;
+  user-select: none;
+  border: 1.5px solid black;
+  background: white;
+  color: black;
+  align-self: center;          /* center horizontally under wrapper */
+}
+
+#change-cat-btn:hover {
+  color: magenta;
+  border-color: magenta;
+}
+
+/* Pulsate animation */
+@keyframes pulsateMagenta {
+  0%, 100% {
+    color: black;
+  }
+  50% {
+    color: magenta;
+  }
+}
+
+.pulsate-magenta {
+  animation: pulsateMagenta 2.5s infinite;
+}
