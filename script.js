@@ -135,28 +135,8 @@ const foodContainer = document.getElementById('food-container');
 const changeCatBtn = document.getElementById('change-cat-btn');
 
 let isPurring = false;
-let catClickable = true;
+let currentCatIndex = Math.floor(Math.random() * cats.length);
 
-// Shuffle helper function
-function shuffle(array) {
-  let currentIndex = array.length, randomIndex;
-
-  while (currentIndex !== 0) {
-    randomIndex = Math.floor(Math.random() * currentIndex);
-    currentIndex--;
-
-    // Swap
-    [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
-  }
-
-  return array;
-}
-
-// Create a shuffled array of cat indices
-const catOrder = shuffle(cats.map((_, i) => i));
-let currentCatIndex = 0;
-
-// Pad cat so bottom aligns with plate
 function padCatToPlate(catStr, plateStr) {
   const catLines = catStr.split('\n').length;
   const plateLines = plateStr.split('\n').length;
@@ -164,35 +144,30 @@ function padCatToPlate(catStr, plateStr) {
   return '\n'.repeat(padLines) + catStr;
 }
 
-// Show cat and plate
 function showCatAndPlate() {
-  catContainer.textContent = padCatToPlate(cats[catOrder[currentCatIndex]], emptyPlate);
+  catContainer.textContent = padCatToPlate(cats[currentCatIndex], emptyPlate);
   foodContainer.textContent = emptyPlate;
 }
-
-// Initial display
 showCatAndPlate();
 
-// Change cat button logic: show next cat in shuffled order, loop to start
+const pulsateClass = 'pulsate-magenta';
+
 changeCatBtn.addEventListener('click', () => {
-  currentCatIndex = (currentCatIndex + 1) % catOrder.length;
+  let newIndex;
+  do {
+    newIndex = Math.floor(Math.random() * cats.length);
+  } while (newIndex === currentCatIndex);
+  currentCatIndex = newIndex;
   showCatAndPlate();
 });
 
-// Pulsate effect when purring
-const pulsateClass = 'pulsate-magenta';
-
-// Plate click logic: purring + pulsate + sounds
 foodContainer.addEventListener('click', () => {
   if (isPurring) return;
-
   isPurring = true;
   foodContainer.textContent = fullPlate;
-
   purrSound.currentTime = 0;
   purrSound.play();
 
-  // Add pulsate effect to cat after 1s delay
   setTimeout(() => {
     catContainer.classList.add(pulsateClass);
   }, 1000);
@@ -202,9 +177,7 @@ foodContainer.addEventListener('click', () => {
     purrSound.currentTime = 0;
     foodContainer.textContent = emptyPlate;
     isPurring = false;
-
     catContainer.classList.remove(pulsateClass);
-
     if (Math.random() < 0.3) {
       fartSound.currentTime = 0;
       fartSound.play();
@@ -212,17 +185,38 @@ foodContainer.addEventListener('click', () => {
   }, 10000);
 });
 
-// Cat click logic: meow or hiss
+
+// NEW: Cat click logic with multi-click detection and hiss muting meow
+
+let clickTimes = [];
+let isHissing = false;
+
 catContainer.addEventListener('click', () => {
-  if (!catClickable) return;
+  const now = Date.now();
 
-  catClickable = false;
+  // Remove clicks older than 1 second
+  clickTimes = clickTimes.filter(t => now - t < 1000);
+  clickTimes.push(now);
 
-  const sound = Math.random() < 0.1 ? hissSound : meowSound;
-  sound.currentTime = 0;
-  sound.play().catch(err => console.error("Sound error:", err));
+  if (isHissing) {
+    // Currently hissing, ignore meow clicks
+    return;
+  }
 
-  sound.onended = () => {
-    catClickable = true;
-  };
+  if (clickTimes.length >= 3) {
+    // Play hiss sound and mute meow while hissing
+    isHissing = true;
+    hissSound.currentTime = 0;
+    hissSound.play();
+
+    clickTimes = [];
+
+    hissSound.onended = () => {
+      isHissing = false;
+    };
+  } else {
+    // Play a new meow sound instance for overlapping sounds
+    const meowInstance = new Audio('sounds/meow.mp3');
+    meowInstance.play().catch(err => console.error("Sound play error:", err));
+  }
 });
